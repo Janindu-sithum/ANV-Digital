@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTrack | Teacher Professional Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+    --primary: #6d28d9;
+    --primary-light: #a78bfa;
+    --secondary: #8b5cf6;
+    --accent: #f5f3ff;
+    --danger: #ef4444;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --bg-main: #fcfaff;
+    --text-dark: #1e1b4b;
+    --text-muted: #64748b;
+    --white: #ffffff;
+    --card-shadow: 0 4px 20px rgba(109, 40, 217, 0.08);
+}
+
+* { box-sizing: border-box; transition: all 0.2s ease; }
+body { font-family: 'Inter', sans-serif; margin: 0; background-color: var(--bg-main); color: var(--text-dark); }
+
+#navBar {
+    background: var(--white); border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 2rem; position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+}
+
+#navBar h2 { margin: 0; color: var(--primary); font-weight: 800; display: flex; align-items: center; gap: 10px; }
+
+#mainContainer {
+    display: none;
+    grid-template-columns: 320px 1fr; gap: 25px; padding: 25px;
+    max-width: 1500px; margin: 0 auto;
+}
+
+.card { background: var(--white); border-radius: 20px; padding: 25px; box-shadow: var(--card-shadow); border: 1px solid #f1f5f9; margin-bottom: 20px; }
+
+.menu-item {
+    padding: 12px 18px; margin-bottom: 8px; border-radius: 12px;
+    cursor: pointer; font-weight: 600; color: var(--text-muted);
+    display: flex; align-items: center; gap: 12px;
+}
+.menu-item.active { background: var(--primary); color: white; }
+.menu-item:hover:not(.active) { background: var(--accent); color: var(--primary); }
+
+button { font-family: inherit; font-weight: 600; border: none; border-radius: 12px; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-outline { background: var(--white); color: var(--primary); border: 1px solid var(--primary); }
+.btn-reset { background: var(--danger); color: white; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-info { background: var(--info); color: white; }
+
+input, select, textarea {
+    width: 100%; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 10px; padding: 12px; margin-bottom: 10px; font-family: inherit;
+}
+
+.student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;}
+.student-tile { background: var(--white); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #f1f5f9; cursor: pointer; }
+.student-tile:hover { transform: translateY(-5px); border-color: var(--primary); }
+.avatar { width: 50px; height: 50px; background: var(--accent); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+.gender-header { background: var(--accent); padding: 8px 15px; border-radius: 10px; margin-bottom: 15px; color: var(--primary); font-weight: 700; border-left: 4px solid var(--primary); margin-top: 10px;}
+
+/* ID Card Styles */
+#idCardContainer {
+    width: 350px; height: 500px; background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 20px; padding: 2px; margin: 20px auto; position: relative; overflow: hidden; color: white;
+}
+.id-inner { background: white; width: 100%; height: 100%; border-radius: 18px; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; color: var(--text-dark); text-align: center; }
+.id-photo { width: 120px; height: 120px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--primary); border: 4px solid var(--accent); margin-bottom: 20px; }
+.id-name { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin: 0; }
+.id-sub { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; }
+.id-detail { width: 100%; display: flex; flex-direction: column; gap: 10px; text-align: left; font-size: 0.8rem; border-top: 1px solid #eee; padding-top: 20px; }
+.id-detail div { display: flex; justify-content: space-between; }
+.id-detail b { color: var(--primary); }
+
+/* Mobile Menu */
+.mobile-menu-btn { display: none; background: var(--primary); color: white; border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 1.2rem; }
+
+/* Login Modal */
+#loginModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; }
+#loginModal.show { display: flex; }
+
+/* General Modal */
+#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
+#modal.show { display: flex; }
+.modal-content { background: var(--white); width: 90%; max-width: 550px; border-radius: 24px; padding: 30px; position: relative; max-height: 90vh; overflow-y: auto; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 0.9rem; }
+th { background: var(--accent); color: var(--primary); }
+
+.att-log { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; font-size: 0.85rem; }
+.att-del-btn { color: var(--danger); cursor: pointer; padding: 5px; }
+
+/* Stats Cards */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.stat-card { background: var(--white); padding: 15px; border-radius: 15px; text-align: center; border-left: 5px solid var(--primary); }
+.stat-value { font-size: 2rem; font-weight: 800; color: var(--primary); }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Toast */
+#toast { display:none; position:fixed; bottom:20px; right:20px; background:var(--primary); color:white; padding:10px 20px; border-radius:10px; z-index:3000; }
+
+/* Responsive */
+@media (max-width: 900px) { 
+    #mainContainer { grid-template-columns: 1fr; }
+    #sidebar { display: none; }
+    #sidebar.mobile-open { display: block; position: fixed; top: 80px; left: 0; width: 280px; height: calc(100vh - 80px); background: var(--white); z-index: 999; padding: 20px; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
+    .mobile-menu-btn { display: block; }
+    .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 998; }
+    .mobile-overlay.show { display: block; }
+}
+</style>
+</head>
+<body>
+
+<div id="toast">Action Successful!</div>
+
+<div id="loginModal">
+    <div class="card" style="width: 350px; text-align: center;">
+        <i class="fa-solid fa-user-shield" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+        <h3>Teacher Login</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Enter Teacher ID (T01)</p>
+        <input type="text" id="teacherIdInput" placeholder="Enter Teacher ID">
+        <button id="loginBtn" class="btn-primary" style="width: 100%; justify-content: center;">Login Now</button>
+    </div>
+</div>
+
+<div id="navBar">
+    <h2 id="dashboardHeader"><i class="fa-solid fa-graduation-cap"></i> EduTrack Pro</h2>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <div id="navControls" style="display:none; gap:10px; align-items: center;">
+            <button class="btn-reset" onclick="resetFilter()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            <button class="btn-outline" id="logoutBtn"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+        </div>
+        <div class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></div>
+    </div>
+</div>
+
+<div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+
+<div id="mainContainer">
+    <div id="sidebar">
+        <div class="card">
+            <h4 style="margin-top:0; color:var(--primary);">Control Panel</h4>
+            <div class="menu-item active" onclick="switchPanel('myClass', this)"><i class="fa-solid fa-chalkboard-user"></i> My Class</div>
+            <div class="menu-item" onclick="switchPanel('students', this)"><i class="fa-solid fa-user-graduate"></i> Students</div>
+            <div class="menu-item" onclick="switchPanel('attendance', this)"><i class="fa-solid fa-calendar-check"></i> Attendance</div>
+            <div class="menu-item" onclick="window.location.href='smedia.html?id=' + encodeURIComponent(currentTeacherData.teacherId) + '&name=' + encodeURIComponent(currentTeacherData.fullName)"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Assignment</div>
+            <div class="menu-item" onclick="window.location.href='teacher.html'"><i class="fa-solid fa-star"></i> Student Marks</div>
+            <div class="menu-item" onclick="switchPanel('announcements', this)"><i class="fa-solid fa-bullhorn"></i> Announcements</div>
+            <div class="menu-item" onclick="switchPanel('lessonPlans', this)"><i class="fa-solid fa-book-open"></i> Lesson Plans</div>
+            <div class="menu-item" onclick="switchPanel('gradebook', this)"><i class="fa-solid fa-chart-line"></i> Gradebook</div>
+            <div class="menu-item" onclick="switchPanel('reports', this)"><i class="fa-solid fa-file-chart-column"></i> Reports</div>
+            <div class="menu-item" onclick="switchPanel('behavior', this)"><i class="fa-solid fa-thumbs-up"></i> Behavior Tracking</div>
+            <div class="menu-item" onclick="switchPanel('parentComms', this)"><i class="fa-solid fa-comments"></i> Parent Comms</div>
+            <div class="menu-item" onclick="switchPanel('resources', this)"><i class="fa-solid fa-folder-open"></i> Teaching Resources</div>
+            <div class="menu-item" onclick="switchPanel('meetings', this)"><i class="fa-solid fa-video"></i> Meetings</div>
+            <div class="menu-item" onclick="switchPanel('myProfile', this)"><i class="fa-solid fa-user-circle"></i> My Profile</div>
+        </div>
+        <div class="card" style="background: var(--primary); color:white;">
+            <p style="margin:0; opacity:0.8; font-size:0.8rem;">Filtered Total</p>
+            <h2 id="totalCount" style="margin:5px 0;">0</h2>
+            <p id="activeFilterText" style="margin:0; font-size:0.75rem;">Showing All Records</p>
+        </div>
+    </div>
+
+    <div id="contentArea">
+        <div id="myClassPanel" class="panel active">
+            <div class="card">
+                <h3>Class Overview</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalStudentsCount">0</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="attendanceRate">0%</div>
+                        <div class="stat-label">Today's Attendance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgGrade">-</div>
+                        <div class="stat-label">Average Grade</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pendingAssignments">0</div>
+                        <div class="stat-label">Pending Assignments</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Registered Student Grades</h3>
+                <div id="dynamicGradeArea">
+                    <p style="color:var(--text-muted);">Loading registered grades...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="margin:0;"><i class="fa-solid fa-table"></i> Class Time Table</h3>
+                    <button class="btn-outline" onclick="openTimetableEditor()"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+                <table>
+                    <thead><tr><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th></tr></thead>
+                    <tbody id="timetableBody">
+                        <tr><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="myProfilePanel" class="panel">
+            <div style="display:grid; grid-template-columns: 1fr 400px; gap: 20px;">
+                <div class="card">
+                    <h3><i class="fa-solid fa-id-card"></i> Edit Profile Info</h3>
+                    <label style="font-size: 0.75rem; font-weight:700;">Full Name</label>
+                    <input type="text" id="teacherFullNameField" placeholder="Enter Full Name">
+                    
+                    <label style="font-size: 0.75rem; font-weight:700;">Subject</label>
+                    <input type="text" id="teacherSubjectField" placeholder="Enter Subject">
+                    
+                    <label style="font-size: 0.75rem; font-weight:700;">Phone Number</label>
+                    <input type="text" id="teacherPhoneField" placeholder="Enter Phone Number">
+                    
+                    <label style="font-size: 0.75rem; font-weight:700;">Email Address</label>
+                    <input type="text" id="teacherEmailField" placeholder="Enter Email Address">
+                    
+                    <label style="font-size: 0.75rem; font-weight:700;">Gender</label>
+                    <select id="teacherGenderField">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                    
+                    <button id="saveProfileBtn" class="btn-primary" style="width: 100%; justify-content: center; margin-top:10px;">Save to Database & Update</button>
+                </div>
+
+                <div class="card" style="text-align: center;">
+                    <h3 style="margin-bottom: 5px;">Teacher ID Card</h3>
+                    <div id="idCardContainer">
+                        <div class="id-inner">
+                            <div class="id-photo"><i class="fa-solid fa-user-tie"></i></div>
+                            <p class="id-name" id="dispName">Teacher Name</p>
+                            <p class="id-sub" id="dispSub">Subject Name</p>
+                            <div class="id-detail">
+                                <div><b>Teacher ID</b> <span id="dispId">-</span></div>
+                                <div><b>Phone</b> <span id="dispPhone">-</span></div>
+                                <div><b>Email</b> <span id="dispEmail">-</span></div>
+                                <div><b>Gender</b> <span id="dispGender">-</span></div>
+                                <div><b>Status</b> <span style="color:var(--success);">VERIFIED</span></div>
+                            </div>
+                            <div style="margin-top:auto; font-size: 0.6rem; color: var(--text-muted); font-weight: 700;">
+                                <i class="fa-solid fa-graduation-cap"></i> EDUTRACK PROFESSIONAL SYSTEM
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="downloadIDCard()" class="btn-outline" style="width: 100%; justify-content: center;"><i class="fa-solid fa-download"></i> Download ID Card</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="studentsPanel" class="panel">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0;">Class Directory</h3>
+                    <input type="text" id="searchBox" placeholder="Search student..." oninput="renderStudents()" style="width:200px; margin:0;">
+                </div>
+                <div id="studentGrid" class="student-grid"></div>
+            </div>
+        </div>
+
+        <div id="attendancePanel" class="panel">
+            <div class="card">
+                <h3>Daily Attendance</h3>
+                <p>Date: <b id="todayDate"></b></p>
+                <div class="gender-header"><i class="fa-solid fa-mars"></i> Boys</div>
+                <div id="attendanceGridBoys" class="student-grid"></div>
+                <div class="gender-header"><i class="fa-solid fa-venus"></i> Girls</div>
+                <div id="attendanceGridGirls" class="student-grid"></div>
+            </div>
+        </div>
+
+        <!-- New Panels for Additional Features -->
+        <div id="announcementsPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-bullhorn"></i> Class Announcements</h3>
+                <textarea id="announcementText" placeholder="Write your announcement here..." style="height: 100px;"></textarea>
+                <button onclick="postAnnouncement()" class="btn-primary">Post Announcement</button>
+                <div id="announcementsList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="lessonPlansPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-book-open"></i> Lesson Plans</h3>
+                <input type="text" id="lessonTitle" placeholder="Lesson Title">
+                <textarea id="lessonContent" placeholder="Lesson Content" style="height: 150px;"></textarea>
+                <button onclick="saveLessonPlan()" class="btn-primary">Save Lesson Plan</button>
+                <div id="lessonPlansList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="gradebookPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-chart-line"></i> Gradebook</h3>
+                <select id="gradebookSubject" onchange="loadGradebook()">
+                    <option value="">Select Subject</option>
+                    <option value="math">Mathematics</option>
+                    <option value="science">Science</option>
+                    <option value="english">English</option>
+                    <option value="history">History</option>
+                </select>
+                <div id="gradebookTable" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="reportsPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-file-chart-column"></i> Reports & Analytics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="reportAttendance">0%</div>
+                        <div class="stat-label">Monthly Attendance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="reportPerformance">-</div>
+                        <div class="stat-label">Class Performance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="reportAssignments">0</div>
+                        <div class="stat-label">Graded Assignments</div>
+                    </div>
+                </div>
+                <button onclick="generateReport()" class="btn-primary" style="margin-top: 15px;"><i class="fa-solid fa-download"></i> Generate Full Report</button>
+            </div>
+        </div>
+
+        <div id="behaviorPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-thumbs-up"></i> Behavior Tracking</h3>
+                <select id="behaviorStudent">
+                    <option value="">Select Student</option>
+                </select>
+                <select id="behaviorType">
+                    <option value="positive">Positive</option>
+                    <option value="negative">Negative</option>
+                </select>
+                <textarea id="behaviorNote" placeholder="Behavior note..." style="height: 80px;"></textarea>
+                <button onclick="logBehavior()" class="btn-primary">Log Behavior</button>
+                <div id="behaviorLogs" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="parentCommsPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-comments"></i> Parent Communications</h3>
+                <select id="parentStudent">
+                    <option value="">Select Student</option>
+                </select>
+                <textarea id="parentMessage" placeholder="Message to parent..." style="height: 100px;"></textarea>
+                <button onclick="sendParentMessage()" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Send Message</button>
+                <div id="parentMessages" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="resourcesPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-folder-open"></i> Teaching Resources</h3>
+                <input type="text" id="resourceTitle" placeholder="Resource Title">
+                <input type="text" id="resourceLink" placeholder="Resource URL">
+                <button onclick="addResource()" class="btn-primary">Add Resource</button>
+                <div id="resourcesList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="meetingsPanel" class="panel">
+            <div class="card">
+                <h3><i class="fa-solid fa-video"></i> Meetings Schedule</h3>
+                <input type="datetime-local" id="meetingTime">
+                <input type="text" id="meetingTopic" placeholder="Meeting Topic">
+                <button onclick="scheduleMeeting()" class="btn-primary">Schedule Meeting</button>
+                <div id="meetingsList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal">
+    <div class="modal-content" id="modalBody"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDFNj9un4xsHzNEp4HjaKeFNuCCt-5GNxA",
+    authDomain: "lucifer-e6969.firebaseapp.com",
+    projectId: "lucifer-e6969",
+    storageBucket: "lucifer-e6969.firebasestorage.app",
+    messagingSenderId: "470007367808",
+    appId: "1:470007367808:web:9c4315cb90442b243b7e65"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allStudents = [];
+let filteredStudents = [];
+let teachersCache = [];
+let selectedGrade = localStorage.getItem('selectedGrade') || null;
+// Explicitly exposing currentTeacherData to window scope for navigation logic
+window.currentTeacherData = null;
+
+async function loadData() {
+    const teacherSnap = await getDocs(collection(db, 'teachers'));
+    teachersCache = [];
+    teacherSnap.forEach(d => teachersCache.push({ ...d.data(), docId: d.id }));
+
+    const snap = await getDocs(collection(db, 'students'));
+    allStudents = [];
+    snap.forEach(d => allStudents.push({ ...d.data(), docId: d.id }));
+
+    const savedTable = localStorage.getItem('timetable');
+    if(savedTable) document.getElementById('timetableBody').innerHTML = savedTable;
+
+    checkLoginStatus();
+    applyLogic();
+    document.getElementById('todayDate').innerText = new Date().toLocaleDateString();
+    updateClassStats();
+    populateStudentDropdowns();
+}
+
+function checkLoginStatus() {
+    const savedUser = localStorage.getItem('proTeacherUser');
+    if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        if (parsedUser.teacherId === "TCH265502") {
+            window.location.href = 'principal.html';
+            return;
+        }
+        const validTeacher = teachersCache.find(t => t.teacherId === parsedUser.teacherId);
+        if (validTeacher) {
+            performLogin(validTeacher);
+        } else {
+            document.getElementById('loginModal').classList.add('show');
+        }
+    } else {
+        document.getElementById('loginModal').classList.add('show');
+    }
+}
+
+function performLogin(teacher) {
+    window.currentTeacherData = teacher;
+    localStorage.setItem('proTeacherUser', JSON.stringify(teacher));
+    document.getElementById('loginModal').classList.remove('show');
+    document.getElementById('navControls').style.display = 'flex';
+    document.getElementById('mainContainer').style.display = 'grid';
+    
+    // Welcome message with Mr/Mrs and full name
+    const honorific = teacher.gender === 'Female' ? 'Mrs.' : 'Mr.';
+    document.getElementById('dashboardHeader').innerHTML = `<i class="fa-solid fa-user-circle"></i> Welcome, ${honorific} ${teacher.fullName}!`;
+    
+    document.getElementById('teacherFullNameField').value = teacher.fullName || '';
+    document.getElementById('teacherSubjectField').value = teacher.subject || '';
+    document.getElementById('teacherPhoneField').value = teacher.phone || '';
+    document.getElementById('teacherEmailField').value = teacher.email || '';
+    document.getElementById('teacherGenderField').value = teacher.gender || 'Male';
+    updateIDCardUI(teacher);
+}
+
+document.getElementById('loginBtn').onclick = async () => {
+    const idInput = document.getElementById('teacherIdInput').value.trim().toUpperCase();
+    if (!idInput) return alert('Enter Teacher ID');
+
+    if (idInput === "TCH265502") {
+        const principalUser = { teacherId: "TCH265502", fullName: "Principal" };
+        localStorage.setItem('proTeacherUser', JSON.stringify(principalUser));
+        window.location.href = 'principal.html';
+        return;
+    }
+
+    const teacher = teachersCache.find(t => t.teacherId === idInput);
+    if (teacher) {
+        performLogin(teacher);
+        showToast(`Welcome, ${teacher.gender === 'Female' ? 'Mrs.' : 'Mr.'} ${teacher.fullName}!`);
+    } else if(idInput === "T01") {
+        const defaultTeacher = { teacherId: "T01", fullName: "New Teacher", subject: "N/A", phone: "N/A", email: "N/A", gender: "Male" };
+        performLogin(defaultTeacher);
+    } else {
+        alert('Invalid Teacher ID');
+    }
+};
+
+document.getElementById('logoutBtn').onclick = () => {
+    localStorage.removeItem('proTeacherUser');
+    location.reload(); 
+};
+
+function updateIDCardUI(t) {
+    document.getElementById('dispName').innerText = t.fullName || 'N/A';
+    document.getElementById('dispSub').innerText = t.subject || 'N/A';
+    document.getElementById('dispId').innerText = t.teacherId || 'N/A';
+    document.getElementById('dispPhone').innerText = t.phone || 'N/A';
+    document.getElementById('dispEmail').innerText = t.email || 'N/A';
+    document.getElementById('dispGender').innerText = t.gender || 'N/A';
+}
+
+document.getElementById('saveProfileBtn').onclick = async () => {
+    if (!window.currentTeacherData) return;
+    const updatedInfo = {
+        fullName: document.getElementById('teacherFullNameField').value,
+        subject: document.getElementById('teacherSubjectField').value,
+        phone: document.getElementById('teacherPhoneField').value,
+        email: document.getElementById('teacherEmailField').value,
+        gender: document.getElementById('teacherGenderField').value,
+        teacherId: window.currentTeacherData.teacherId
+    };
+    try {
+        const q = query(collection(db, "teachers"), where("teacherId", "==", window.currentTeacherData.teacherId));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) await updateDoc(doc(db, "teachers", querySnapshot.docs[0].id), updatedInfo);
+        else await addDoc(collection(db, "teachers"), updatedInfo);
+        window.currentTeacherData = updatedInfo;
+        localStorage.setItem('proTeacherUser', JSON.stringify(updatedInfo));
+        
+        // Update welcome message
+        const honorific = updatedInfo.gender === 'Female' ? 'Mrs.' : 'Mr.';
+        document.getElementById('dashboardHeader').innerHTML = `<i class="fa-solid fa-user-circle"></i> Welcome, ${honorific} ${updatedInfo.fullName}!`;
+        
+        updateIDCardUI(updatedInfo);
+        showToast("Profile Saved!");
+    } catch (e) { console.error(e); }
+};
+
+window.downloadIDCard = () => {
+    const card = document.getElementById('idCardContainer');
+    html2canvas(card).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Teacher_ID_Card.png'; link.href = canvas.toDataURL(); link.click();
+    });
+};
+
+function applyLogic() {
+    const registeredGrades = [...new Set(allStudents.map(s => s.grade))].sort();
+    if (selectedGrade) {
+        filteredStudents = allStudents.filter(s => s.grade === selectedGrade);
+        document.getElementById('activeFilterText').innerText = "Active: Grade " + selectedGrade;
+        document.getElementById('dynamicGradeArea').innerHTML = `<button class="btn-outline" onclick="resetFilter()" style="margin: 0 auto;">Show all Grades</button>`;
+    } else {
+        filteredStudents = allStudents;
+        document.getElementById('activeFilterText').innerText = "Showing All Grades";
+        renderGradeList(registeredGrades);
+    }
+    document.getElementById('totalCount').innerText = filteredStudents.length;
+    renderStudents();
+    renderAttendance();
+}
+
+function updateClassStats() {
+    // Total Students
+    document.getElementById('totalStudentsCount').innerText = filteredStudents.length;
+    
+    // Attendance Rate
+    const today = new Date().toLocaleDateString();
+    const presentCount = filteredStudents.filter(s => s.attendance && s.attendance.includes(today)).length;
+    const attendanceRate = filteredStudents.length > 0 ? Math.round((presentCount / filteredStudents.length) * 100) : 0;
+    document.getElementById('attendanceRate').innerText = attendanceRate + '%';
+    document.getElementById('reportAttendance').innerText = attendanceRate + '%';
+    
+    // Average Grade
+    const grades = filteredStudents.filter(s => s.averageGrade).map(s => parseFloat(s.averageGrade));
+    const avgGrade = grades.length > 0 ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1) : '-';
+    document.getElementById('avgGrade').innerText = avgGrade;
+    document.getElementById('reportPerformance').innerText = avgGrade;
+    
+    // Pending Assignments (example)
+    document.getElementById('pendingAssignments').innerText = '3';
+    document.getElementById('reportAssignments').innerText = '12';
+}
+
+function renderGradeList(grades) {
+    const area = document.getElementById('dynamicGradeArea');
+    area.innerHTML = grades.map(g => `<button class="btn-primary" onclick="setGradeFilter('${g}')" style="margin:5px;">Grade ${g}</button>`).join('');
+}
+
+window.setGradeFilter = (g) => { selectedGrade = g; localStorage.setItem('selectedGrade', g); applyLogic(); updateClassStats(); };
+window.resetFilter = () => { selectedGrade = null; localStorage.removeItem('selectedGrade'); applyLogic(); updateClassStats(); };
+
+function renderStudents() {
+    const grid = document.getElementById('studentGrid');
+    const term = document.getElementById('searchBox').value.toLowerCase();
+    grid.innerHTML = '';
+    filteredStudents.filter(s => s.fullName.toLowerCase().includes(term)).forEach(s => {
+        grid.appendChild(createTile(s, () => showProfile(s)));
+    });
+}
+
+function renderAttendance() {
+    const boyGrid = document.getElementById('attendanceGridBoys');
+    const girlGrid = document.getElementById('attendanceGridGirls');
+    if(!boyGrid || !girlGrid) return;
+    boyGrid.innerHTML = ''; girlGrid.innerHTML = '';
+    const today = new Date().toLocaleDateString();
+    filteredStudents.forEach(s => {
+        const isPresent = s.attendance && s.attendance.includes(today);
+        const tile = createTile(s, () => markPresent(s.docId, today));
+        if(isPresent) tile.style.background = '#d1fae5';
+        if(s.gender === 'male') boyGrid.appendChild(tile);
+        else girlGrid.appendChild(tile);
+    });
+}
+
+function createTile(s, onClick) {
+    const div = document.createElement('div');
+    div.className = 'student-tile';
+    const icon = s.gender === 'female' ? 'fa-venus' : 'fa-mars';
+    div.innerHTML = `<div class="avatar"><i class="fa-solid ${icon}"></i></div>
+                     <div style="font-weight:700; font-size:0.85rem;">${s.fullName}</div>
+                     <div style="font-size:0.65rem; color:var(--text-muted);">ID: ${s.studentId}</div>`;
+    div.onclick = onClick;
+    return div;
+}
+
+window.markPresent = async (docId, date) => {
+    const student = allStudents.find(s => s.docId === docId);
+    if(student.attendance && student.attendance.includes(date)) return showToast("Already marked!");
+    await updateDoc(doc(db, 'students', docId), { attendance: arrayUnion(date) });
+    showToast("Attendance Marked!"); loadData();
+}
+
+window.removeAttendance = async (docId, date) => {
+    if(confirm("Delete this attendance record?")) {
+        await updateDoc(doc(db, 'students', docId), { attendance: arrayRemove(date) });
+        showToast("Attendance Deleted!");
+        closeModal();
+        loadData();
+    }
+}
+
+// Removed addNewStudent function and settings panel
+
+window.openTimetableEditor = () => {
+    const modal = document.getElementById('modal');
+    const body = document.getElementById('modalBody');
+    body.innerHTML = `<h3>Edit Timetable</h3><input type="text" id="tMon" placeholder="Mon Subjects"><input type="text" id="tTue" placeholder="Tue Subjects"><input type="text" id="tWed" placeholder="Wed Subjects"><input type="text" id="tThu" placeholder="Thu Subjects"><input type="text" id="tFri" placeholder="Fri Subjects"><button onclick="updateTable()" class="btn-primary" style="width:100%;">Save</button>`;
+    modal.classList.add('show');
+}
+
+window.updateTable = () => {
+    const days = ['tMon', 'tTue', 'tWed', 'tThu', 'tFri'];
+    let cells = "";
+    days.forEach(day => { cells += `<td>${document.getElementById(day).value || "-"}</td>`; });
+    const row = `<tr>${cells}</tr>`;
+    document.getElementById('timetableBody').innerHTML = row;
+    localStorage.setItem('timetable', row); closeModal();
+}
+
+window.showProfile = (s) => {
+    const modal = document.getElementById('modal');
+    const body = document.getElementById('modalBody');
+    const attList = (s.attendance && s.attendance.length > 0) 
+        ? s.attendance.map(date => `
+            <div class="att-log">
+                <span>${date}</span>
+                <i class="fa-solid fa-trash-can att-del-btn" onclick="removeAttendance('${s.docId}', '${date}')"></i>
+            </div>
+        `).join('') 
+        : '<p style="font-size:0.8rem; color:var(--text-muted);">No records.</p>';
+
+    body.innerHTML = `
+        <span onclick="closeModal()" style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:1.5rem;">&times;</span>
+        <h2>${s.fullName}</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div class="card" style="padding:10px; margin:0;">ID: ${s.studentId}</div>
+            <div class="card" style="padding:10px; margin:0;">${s.gender} | Gr: ${s.grade}</div>
+        </div>
+        <h4>Attendance Log</h4>
+        <div style="max-height:150px; overflow-y:auto; margin-bottom:15px;">${attList}</div>
+        <h4>Teacher Remarks</h4>
+        <textarea id="remark" style="height:80px;">${s.remark || ''}</textarea>
+        <button onclick="saveRemark('${s.docId}')" class="btn-primary" style="width:100%;">Save Remark</button>
+        <button onclick="deleteRecord('${s.docId}')" style="color:var(--danger); width:100%; margin-top:10px; background:none;">Delete Student</button>
+    `;
+    modal.classList.add('show');
+}
+
+window.saveRemark = async (id) => {
+    await updateDoc(doc(db, 'students', id), { remark: document.getElementById('remark').value });
+    showToast("Saved!"); closeModal(); loadData();
+}
+
+window.deleteRecord = async (id) => {
+    if(confirm("Delete student?")) { await deleteDoc(doc(db, 'students', id)); loadData(); closeModal(); }
+}
+
+// New Feature Functions
+async function postAnnouncement() {
+    const text = document.getElementById('announcementText').value;
+    if (!text) return alert('Enter announcement text');
+    
+    await addDoc(collection(db, 'announcements'), {
+        text,
+        teacherId: window.currentTeacherData.teacherId,
+        teacherName: window.currentTeacherData.fullName,
+        date: new Date().toLocaleString()
+    });
+    showToast("Announcement posted!");
+    document.getElementById('announcementText').value = '';
+}
+
+async function saveLessonPlan() {
+    const title = document.getElementById('lessonTitle').value;
+    const content = document.getElementById('lessonContent').value;
+    if (!title || !content) return alert('Fill all fields');
+    
+    await addDoc(collection(db, 'lessonPlans'), {
+        title,
+        content,
+        teacherId: window.currentTeacherData.teacherId,
+        date: new Date().toLocaleString()
+    });
+    showToast("Lesson plan saved!");
+}
+
+function loadGradebook() {
+    const subject = document.getElementById('gradebookSubject').value;
+    if (!subject) return;
+    
+    // Simulated gradebook data
+    const table = `
+        <table>
+            <tr><th>Student</th><th>Test 1</th><th>Test 2</th><th>Final</th><th>Average</th></tr>
+            ${filteredStudents.map(s => `
+                <tr>
+                    <td>${s.fullName}</td>
+                    <td><input type="text" value="85" style="width:50px;"></td>
+                    <td><input type="text" value="78" style="width:50px;"></td>
+                    <td><input type="text" value="92" style="width:50px;"></td>
+                    <td>85</td>
+                </tr>
+            `).join('')}
+        </table>
+        <button onclick="saveGrades()" class="btn-primary" style="margin-top:10px;">Save Grades</button>
+    `;
+    document.getElementById('gradebookTable').innerHTML = table;
+}
+
+function generateReport() {
+    showToast("Report generated and downloaded!");
+    // In a real app, this would generate and download a PDF report
+}
+
+function populateStudentDropdowns() {
+    const studentOptions = filteredStudents.map(s => 
+        `<option value="${s.docId}">${s.fullName}</option>`
+    ).join('');
+    
+    document.getElementById('behaviorStudent').innerHTML = 
+        `<option value="">Select Student</option>${studentOptions}`;
+    document.getElementById('parentStudent').innerHTML = 
+        `<option value="">Select Student</option>${studentOptions}`;
+}
+
+async function logBehavior() {
+    const studentId = document.getElementById('behaviorStudent').value;
+    const type = document.getElementById('behaviorType').value;
+    const note = document.getElementById('behaviorNote').value;
+    
+    if (!studentId || !note) return alert('Select student and enter note');
+    
+    await addDoc(collection(db, 'behaviorLogs'), {
+        studentId,
+        type,
+        note,
+        teacherId: window.currentTeacherData.teacherId,
+        date: new Date().toLocaleString()
+    });
+    showToast("Behavior logged!");
+    document.getElementById('behaviorNote').value = '';
+}
+
+async function sendParentMessage() {
+    const studentId = document.getElementById('parentStudent').value;
+    const message = document.getElementById('parentMessage').value;
+    
+    if (!studentId || !message) return alert('Select student and enter message');
+    
+    await addDoc(collection(db, 'parentMessages'), {
+        studentId,
+        message,
+        teacherId: window.currentTeacherData.teacherId,
+        date: new Date().toLocaleString()
+    });
+    showToast("Message sent to parent!");
+    document.getElementById('parentMessage').value = '';
+}
+
+async function addResource() {
+    const title = document.getElementById('resourceTitle').value;
+    const link = document.getElementById('resourceLink').value;
+    
+    if (!title || !link) return alert('Fill all fields');
+    
+    await addDoc(collection(db, 'teachingResources'), {
+        title,
+        link,
+        teacherId: window.currentTeacherData.teacherId,
+        date: new Date().toLocaleString()
+    });
+    showToast("Resource added!");
+}
+
+async function scheduleMeeting() {
+    const time = document.getElementById('meetingTime').value;
+    const topic = document.getElementById('meetingTopic').value;
+    
+    if (!time || !topic) return alert('Fill all fields');
+    
+    await addDoc(collection(db, 'meetings'), {
+        time,
+        topic,
+        teacherId: window.currentTeacherData.teacherId,
+        date: new Date().toLocaleString()
+    });
+    showToast("Meeting scheduled!");
+}
+
+window.switchPanel = (name, el) => {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    document.getElementById(name + 'Panel').classList.add('active');
+    el.classList.add('active');
+    toggleMobileMenu(false); // Close mobile menu when switching panels
+}
+
+window.closeModal = () => document.getElementById('modal').classList.remove('show');
+
+function showToast(msg) {
+    const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2000);
+}
+
+// Mobile menu 
+window.toggleMobileMenu = function(show) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    
+    if (show === undefined) {
+        show = !sidebar.classList.contains('mobile-open');
+    }
+    
+    if (show) {
+        sidebar.classList.add('mobile-open');
+        overlay.classList.add('show');
+    } else {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('show');
+    }
+}
+
+
+loadData();
+</script>
+</body>
+</html>

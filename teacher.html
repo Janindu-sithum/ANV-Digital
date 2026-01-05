@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard — Class Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ---------------------------------- */
+        /* 1. Global & Variables */
+        /* ---------------------------------- */
+        :root {
+            --primary-color: #6c5ce7;
+            --primary-light: #a29bfe;
+            --secondary-color: #00b894;
+            --background-light: #f8f9fd;
+            --card-background: #ffffff;
+            --text-dark: #2d3436;
+            --text-muted: #636e72;
+            --border-color: #e0e0e0;
+            --danger-color: #ff7675;
+            --shadow: 0 10px 30px rgba(108, 92, 231, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background: var(--background-light);
+            color: var(--text-dark);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        h2, h3 { color: var(--primary-color); margin-bottom: 20px; font-weight: 700; }
+
+        /* Form Styles */
+        label { font-weight: 500; display: block; margin-top: 15px; font-size: 0.9rem; color: var(--text-muted); }
+        select, input, button {
+            padding: 12px 16px; margin: 8px 0; border-radius: 12px;
+            border: 1px solid var(--border-color); font-size: 14px; outline: none; transition: all 0.3s;
+        }
+        select, input[type="text"], input[type="number"], input[type="datetime-local"] {
+            width: 100%; box-sizing: border-box; background: #fff;
+        }
+        button {
+            cursor: pointer; background: var(--primary-color); color: #fff; border: none;
+            font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:hover { background: #5b4bc4; transform: translateY(-2px); }
+
+        /* Dashboard & Table */
+        .metric-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card {
+            background: var(--card-background); padding: 25px; border-radius: 20px;
+            box-shadow: var(--shadow); text-align: center; border-bottom: 4px solid var(--primary-color);
+        }
+        .metric-card h4 { margin: 10px 0 0; font-size: 28px; color: var(--primary-color); }
+
+        .input-group {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; background: #fff; padding: 20px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 30px;
+        }
+
+        #studentsTableWrapper { background: #fff; border-radius: 20px; padding: 10px; box-shadow: var(--shadow); overflow-x: auto; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th, td { padding: 15px 12px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--primary-color); font-weight: 700; text-transform: uppercase; font-size: 12px; }
+        
+        .rank-column.hidden { display: none; }
+        .top-3 { background-color: #f8f7ff !important; color: var(--primary-color); }
+
+        /* Modal / Lightbox */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-card { background: #fff; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: var(--shadow); }
+        
+        /* Switch */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .subject-pill {
+            display: inline-flex; align-items: center; background: var(--primary-light);
+            color: white; padding: 6px 14px; border-radius: 50px; margin: 0 8px 10px 0; font-size: 13px;
+        }
+        .subject-pill button { background: none; border: none; color: white; cursor: pointer; padding: 0; margin-left: 5px; }
+
+        /* Dark Mode */
+        .dark-mode { --background-light: #1a1a2e; --card-background: #16213e; --text-dark: #e9ecef; --border-color: #2d3436; }
+    </style>
+</head>
+<body>
+
+<div id="dashboardHeader">
+    <h2><i class="fa-solid fa-graduation-cap"></i> Teacher Dashboard</h2>
+    <div style="display: flex; gap: 10px;">
+        <button id="settingsBtn" style="background: #636e72;"><i class="fa-solid fa-gear"></i> Settings</button>
+        <button id="darkModeToggle" style="background: #2d3436;"><i class="fa-solid fa-moon"></i></button>
+        <a href="index.html" style="text-decoration: none;"><button style="background: #6c5ce7;"><i class="fa-solid fa-house"></i> Home</button></a>
+    </div>
+</div>
+
+<div class="input-group">
+    <div>
+        <label>Select Grade</label>
+        <select id="gradeSelect">
+            <option value="">--Grade--</option>
+            <script>
+                ['6','7','8','9','10','11','12','13'].forEach(g => document.write(`<option value="${g}">${g}</option>`));
+            </script>
+        </select>
+    </div>
+    <div>
+        <label>Select Section</label>
+        <select id="sectionSelect" disabled>
+            <option value="">--Section--</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+        </select>
+    </div>
+    <div>
+        <label>Academic Year</label>
+        <input type="text" id="reportYear" placeholder="e.g., 2025">
+    </div>
+    <div>
+        <label>Class Teacher</label>
+        <input type="text" id="classTeacher" placeholder="Full Name">
+    </div>
+</div>
+
+<div id="studentsSection" style="display:none;">
+    <h3>Class Report: <span id="currentClass" style="color: var(--secondary-color);"></span></h3>
+
+    <div class="metric-cards">
+        <div class="metric-card"><p>Class Average</p><h4 id="classAverage">0.00</h4></div>
+        <div class="metric-card"><p>Highest Mark</p><h4 id="highestTotal">0</h4></div>
+        <div class="metric-card"><p>Total Students</p><h4 id="studentCount">0</h4></div>
+    </div>
+
+    <input type="text" id="studentFilter" placeholder="🔍 Search students by name or ID..." style="padding: 15px; margin-bottom: 20px;">
+
+    <div style="margin-bottom: 10px;">
+        <label>Active Subjects</label>
+        <div id="subjectPills"></div>
+    </div>
+
+    <div class="input-group" style="grid-template-columns: 1fr auto; padding: 10px; margin-bottom: 20px;">
+        <input type="text" id="newSubject" placeholder="Enter Subject Name">
+        <button id="addSubjectBtn"><i class="fa-solid fa-plus"></i> Add Subject</button>
+    </div>
+
+    <div id="studentsTableWrapper">
+        <table id="studentsTable">
+            <thead>
+                <tr id="tableHeaderRow">
+                    </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+    <div class="input-group" style="margin-top:20px; background:none; box-shadow:none; padding:0;">
+        <button id="saveDraftBtn" style="background: #a29bfe;"><i class="fa-solid fa-floppy-disk"></i> Save Draft</button>
+        <button id="saveReportsBtn"><i class="fa-solid fa-cloud-arrow-up"></i> Finalize Report</button>
+        <button id="resetMarksBtn" style="background: var(--danger-color);"><i class="fa-solid fa-trash-can"></i> Reset</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+        <h3><i class="fa-solid fa-sliders"></i> Settings</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span style="font-weight: 500;">Off Rank</span>
+            <label class="switch">
+                <input type="checkbox" id="offRankSwitch">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <label>Set Upload Time & Date</label>
+        <input type="datetime-local" id="scheduledTime">
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Leave blank to upload immediately.</p>
+        
+        <button id="closeSettings" style="width: 100%; margin-top: 15px; background: var(--secondary-color);">Apply & Close</button>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDFNj9un4xsHzNEp4HjaKeFNuCCt-5GNxA",
+    authDomain: "lucifer-e6969.firebaseapp.com",
+    projectId: "lucifer-e6969",
+    storageBucket: "lucifer-e6969.firebasestorage.app",
+    messagingSenderId: "470007367808",
+    appId: "1:470007367808:web:9c4315cb90442b243b7e65"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let subjects = [];
+let studentsData = [];
+let currentClassId = '';
+
+const gradeSelect = document.getElementById('gradeSelect');
+const sectionSelect = document.getElementById('sectionSelect');
+const studentsSection = document.getElementById('studentsSection');
+const studentsTableBody = document.querySelector('#studentsTable tbody');
+const settingsModal = document.getElementById('settingsModal');
+const offRankSwitch = document.getElementById('offRankSwitch');
+const scheduledTimeInput = document.getElementById('scheduledTime');
+
+// --- Settings Actions ---
+document.getElementById('settingsBtn').onclick = () => settingsModal.style.display = 'flex';
+document.getElementById('closeSettings').onclick = () => {
+    settingsModal.style.display = 'none';
+    renderTable();
+};
+
+// --- Selection Actions ---
+gradeSelect.onchange = () => {
+    sectionSelect.disabled = !gradeSelect.value;
+    studentsSection.style.display = 'none';
+};
+
+sectionSelect.onchange = async () => {
+    currentClassId = gradeSelect.value + sectionSelect.value;
+    document.getElementById('currentClass').textContent = currentClassId;
+    studentsSection.style.display = 'block';
+    await loadDraft();
+    await loadStudents();
+};
+
+async function loadDraft() {
+    const docSnap = await getDoc(doc(db, 'draft_reports', currentClassId));
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        subjects = data.subjects || [];
+        document.getElementById('reportYear').value = data.year || '';
+        document.getElementById('classTeacher').value = data.classTeacher || '';
+    }
+}
+
+async function loadStudents() {
+    studentsData = [];
+    const q = query(collection(db, 'students'), where('grade', '==', currentClassId));
+    const snaps = await getDocs(q);
+    snaps.forEach(snap => {
+        studentsData.push({ id: snap.id, ...snap.data(), total: 0, average: 0, rank: 0 });
+    });
+    calculateTotals();
+}
+
+function calculateTotals() {
+    studentsData.forEach(s => {
+        let total = 0;
+        subjects.forEach(sub => total += (Number(s[sub]) || 0));
+        s.total = total;
+        s.average = subjects.length ? (total / subjects.length).toFixed(2) : 0;
+    });
+
+    // Ranking
+    const ranked = [...studentsData].filter(s => s.total > 0).sort((a,b) => b.total - a.total);
+    studentsData.forEach(s => {
+        const rIndex = ranked.findIndex(x => x.id === s.id);
+        s.rank = rIndex !== -1 ? rIndex + 1 : '';
+    });
+
+    document.getElementById('studentCount').textContent = studentsData.length;
+    renderTable();
+}
+
+function renderTable() {
+    const filter = document.getElementById('studentFilter').value.toLowerCase();
+    
+    // Sort logic: All students show, but Males first, then Females
+    const sortedData = [...studentsData].sort((a, b) => {
+        if (a.gender === 'Male' && b.gender === 'Female') return -1;
+        if (a.gender === 'Female' && b.gender === 'Male') return 1;
+        return 0;
+    });
+
+    // Build Header
+    const headerRow = document.getElementById('tableHeaderRow');
+    let headerHtml = `<th>Student Name</th><th>ID</th><th>Gender</th>`;
+    subjects.forEach(sub => headerHtml += `<th>${sub}</th>`);
+    headerHtml += `<th>Total</th><th class="rank-column ${offRankSwitch.checked ? 'hidden' : ''}">Rank</th>`;
+    headerRow.innerHTML = headerHtml;
+
+    // Build Rows
+    studentsTableBody.innerHTML = '';
+    sortedData.filter(s => s.fullName.toLowerCase().includes(filter) || s.studentId.toLowerCase().includes(filter))
+    .forEach(s => {
+        const tr = document.createElement('tr');
+        if (s.rank > 0 && s.rank <= 3) tr.classList.add('top-3');
+
+        let rowHtml = `<td style="text-align:left;">${s.fullName}</td><td>${s.studentId}</td><td>${s.gender}</td>`;
+        subjects.forEach(sub => {
+            rowHtml += `<td contenteditable="true" oninput="updateMark('${s.id}', '${sub}', this.innerText)">${s[sub] || 0}</td>`;
+        });
+        rowHtml += `<td><b>${s.total}</b></td><td class="rank-column ${offRankSwitch.checked ? 'hidden' : ''}">${s.rank}</td>`;
+        tr.innerHTML = rowHtml;
+        studentsTableBody.appendChild(tr);
+    });
+    
+    renderSubjectPills();
+}
+
+window.updateMark = (sid, sub, val) => {
+    const student = studentsData.find(s => s.id === sid);
+    if (student) {
+        student[sub] = val.trim() === '' ? 0 : Number(val);
+        calculateTotals();
+    }
+};
+
+document.getElementById('addSubjectBtn').onclick = () => {
+    const sub = document.getElementById('newSubject').value.trim();
+    if (sub && !subjects.includes(sub)) {
+        subjects.push(sub);
+        studentsData.forEach(s => s[sub] = 0);
+        calculateTotals();
+        document.getElementById('newSubject').value = '';
+    }
+};
+
+function renderSubjectPills() {
+    const container = document.getElementById('subjectPills');
+    container.innerHTML = '';
+    subjects.forEach(sub => {
+        const pill = document.createElement('span');
+        pill.className = 'subject-pill';
+        pill.innerHTML = `${sub} <button onclick="removeSubject('${sub}')"><i class="fa-solid fa-xmark"></i></button>`;
+        container.appendChild(pill);
+    });
+}
+
+window.removeSubject = (sub) => {
+    subjects = subjects.filter(s => s !== sub);
+    studentsData.forEach(s => delete s[sub]);
+    calculateTotals();
+};
+
+// --- Finalize Upload Logic ---
+document.getElementById('saveReportsBtn').onclick = async () => {
+    const year = document.getElementById('reportYear').value;
+    const teacher = document.getElementById('classTeacher').value;
+    const scheduleVal = scheduledTimeInput.value;
+    
+    if (!year || !teacher) return alert("Please fill Year and Teacher name.");
+
+    // If time is set, use it; otherwise use now.
+    const uploadTime = scheduleVal ? new Date(scheduleVal).getTime() : Date.now();
+
+    try {
+        for (const student of studentsData) {
+            if (student.total === 0) continue;
+            const reportRef = collection(db, `students/${student.id}/reports`);
+            await addDoc(reportRef, {
+                year,
+                classTeacher: teacher,
+                classId: currentClassId,
+                subjects: subjects.map(sub => ({ name: sub, marks: student[sub] || 0 })),
+                total: student.total,
+                average: student.average,
+                rank: offRankSwitch.checked ? "N/A" : student.rank,
+                createdAt: uploadTime 
+            });
+        }
+        alert("OK! Reports uploaded successfully.");
+    } catch (e) {
+        console.error(e);
+        alert("Error uploading reports.");
+    }
+};
+
+document.getElementById('studentFilter').oninput = renderTable;
+document.getElementById('darkModeToggle').onclick = () => document.body.classList.toggle('dark-mode');
+</script>
+
+</body>
+</html>

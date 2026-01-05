@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Assignment Panel - Final Fix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --success: #00b894;
+            --danger: #ff7675;
+            --bg: #f4f7ff;
+            --white: #ffffff;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); margin: 0; padding: 0; }
+
+        .navbar {
+            background: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .nav-links a { text-decoration: none; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        
+        /* Teacher Identity Styles - READ ONLY */
+        .identity-box { background: #f0edff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px dashed var(--primary); }
+        .identity-box label { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+        .readonly-input { background: #f9f9f9; cursor: not-allowed; border-color: #eee; font-weight: 600; color: #555; margin-bottom: 10px !important; }
+
+        .grade-selector {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px; margin-bottom: 15px; border: 1px solid #eee; padding: 10px; border-radius: 10px;
+        }
+
+        .history-item {
+            background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px;
+            border-left: 5px solid var(--primary); display: flex; flex-direction: column; gap: 10px;
+        }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer;
+            font-size: 12px; font-weight: 600; color: white; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-post { background: var(--primary); width: 100%; font-size: 16px; padding: 15px; }
+        .btn-del { background: var(--danger); }
+        .btn-set { background: #fdcb6e; }
+        .btn-send { background: var(--success); }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 20px; width: 95%; max-width: 500px;
+            max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        .close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 20px; }
+
+        .list-box { border: 1px solid #eee; border-radius: 10px; padding: 10px; margin-top: 10px; }
+        .student-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 13px; }
+
+        .answer-card { background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+        .answer-img { width: 100%; border-radius: 8px; cursor: pointer; margin: 10px 0; border: 1px solid #ddd; }
+
+        .tab-btn { padding: 10px 20px; border: none; background: #eee; cursor: pointer; border-radius: 10px 10px 0 0; font-weight: 600; }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .status-seen { color: var(--success); font-weight: 700; }
+        .status-pending { color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div style="font-weight:700; color:var(--primary);"><i class="fa-solid fa-graduation-cap"></i> Teacher Admin</div>
+        <div class="nav-links"><a href="index.html"><i class="fa-solid fa-house"></i> Home</a></div>
+    </nav>
+
+    <div class="container">
+        <div style="margin-bottom: 15px;">
+            <button class="tab-btn active" id="tabUpload" onclick="window.switchTab('upload')">Upload</button>
+            <button class="tab-btn" id="tabHistory" onclick="window.switchTab('history')">Marked History</button>
+        </div>
+
+        <div id="uploadSection">
+            <div class="card">
+                <h2>Post Assignment</h2>
+                
+                <div class="identity-box">
+                    <label>Teacher Name</label>
+                    <input type="text" id="teacherNameInput" class="readonly-input" placeholder="Teacher Name" readonly>
+                    <label>Teacher ID</label>
+                    <input type="text" id="teacherIdInput" class="readonly-input" placeholder="Teacher ID" readonly>
+                </div>
+
+                <input type="text" id="taskTitle" placeholder="Assignment Title">
+                <textarea id="taskInstructions" rows="3" placeholder="Instructions..."></textarea>
+                
+                <label style="font-size:12px; font-weight:600;">Assignment Material (Image):</label>
+                <input type="file" id="teacherMaterial" accept="image/*" style="border:none; padding:5px;">
+
+                <label style="font-size:12px; font-weight:600;">Select Grades:</label>
+                <div class="grade-selector" id="gradeList">Loading grades...</div>
+                <button class="action-btn btn-post" id="postBtn">Post Assignment</button>
+            </div>
+
+            <h3>Active Assignments</h3>
+            <div id="activeHistory">Loading...</div>
+        </div>
+
+        <div id="historySection" style="display:none;">
+            <div class="card">
+                <h3>Marked Students History</h3>
+                <div id="markedList">No marked assignments yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="window.closeModals()">&times;</span><div id="viewStatusContent"></div></div></div>
+    <div id="sendedModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="window.closeModals()">&times;</span><div id="submissionsContent"></div></div></div>
+    <div id="imageModal" class="modal" onclick="this.style.display='none'"><img id="fullImg" style="max-width:90%; max-height:90%; border-radius:10px;"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFNj9un4xsHzNEp4HjaKeFNuCCt-5GNxA",
+            authDomain: "lucifer-e6969.firebaseapp.com",
+            projectId: "lucifer-e6969",
+            storageBucket: "lucifer-e6969.firebasestorage.app",
+            messagingSenderId: "470007367808",
+            appId: "1:470007367808:web:9c4315cb90442b243b7e65"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const IMGBB_API_KEY = "930e59be30a578eeb8474abdd5eeaa0e";
+
+        // Logic to capture URL parameters (Read Only)
+        function setTeacherIdentity() {
+            const params = new URLSearchParams(window.location.search);
+            const teacherId = params.get('id');
+            const teacherName = params.get('name');
+            
+            if(teacherId) document.getElementById('teacherIdInput').value = teacherId;
+            if(teacherName) document.getElementById('teacherNameInput').value = teacherName;
+        }
+
+        async function loadGrades() {
+            const snaps = await getDocs(collection(db, "students"));
+            const grades = [...new Set(snaps.docs.map(d => d.data().grade))].sort();
+            document.getElementById('gradeList').innerHTML = grades.map(g => `<div class="grade-item"><input type="checkbox" value="${g}" class="g-check"> ${g}</div>`).join('');
+        }
+
+        async function loadActiveAssignments() {
+            const q = query(collection(db, "school_assignments"), orderBy("timestamp", "desc"));
+            const snaps = await getDocs(q);
+            document.getElementById('activeHistory').innerHTML = snaps.docs.map(s => {
+                const d = s.data();
+                return `
+                    <div class="history-item">
+                        <div><strong>${d.title}</strong><br><small>Teacher: ${d.teacherName || 'N/A'}</small><br><small>Grades: ${d.targetGrades.join(', ')}</small></div>
+                        <div class="btn-group">
+                            <button class="action-btn btn-del" onclick="window.deleteAssignment('${s.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                            <button class="action-btn btn-set" onclick="window.openSettings('${s.id}', '${d.targetGrades.join(',')}')"><i class="fa-solid fa-eye"></i> Status</button>
+                            <button class="action-btn btn-send" onclick="window.openSubmissions('${s.id}')"><i class="fa-solid fa-paper-plane"></i> Answers</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.deleteAssignment = async (id) => {
+            if(confirm("Are you sure? This will delete the assignment and all related history.")) {
+                try {
+                    await deleteDoc(doc(db, "school_assignments", id));
+                    const qSub = query(collection(db, "submitted_assignments"), where("assignmentId", "==", id));
+                    const subSnaps = await getDocs(qSub);
+                    subSnaps.forEach(async (d) => await deleteDoc(doc(db, "submitted_assignments", d.id)));
+                    const qMark = query(collection(db, "marked_history"), where("assignmentId", "==", id));
+                    const markSnaps = await getDocs(qMark);
+                    markSnaps.forEach(async (d) => await deleteDoc(doc(db, "marked_history", d.id)));
+                    alert("Deleted!");
+                    loadActiveAssignments();
+                } catch (e) { alert("Error."); }
+            }
+        };
+
+        window.openSettings = async (assignmentId, gradesStr) => {
+            const grades = gradesStr.split(',');
+            const modal = document.getElementById('settingModal');
+            const content = document.getElementById('viewStatusContent');
+            content.innerHTML = "Checking...";
+            modal.style.display = 'flex';
+            const qStu = query(collection(db, "students"), where("grade", "in", grades));
+            const studentSnaps = await getDocs(qStu);
+            const qSub = query(collection(db, "submitted_assignments"), where("assignmentId", "==", assignmentId));
+            const submissionSnaps = await getDocs(qSub);
+            const submittedIds = submissionSnaps.docs.map(s => s.data().studentId);
+            const qMarked = query(collection(db, "marked_history"), where("assignmentId", "==", assignmentId));
+            const markedSnaps = await getDocs(qMarked);
+            const markedIds = markedSnaps.docs.map(s => s.data().studentId);
+            content.innerHTML = `<h4>Status</h4><div class="list-box">` + 
+                studentSnaps.docs.map(s => {
+                    const data = s.data();
+                    const isSeen = submittedIds.includes(data.studentId) || markedIds.includes(data.studentId);
+                    return `<div class="student-row"><span>${data.fullName}</span><span class="${isSeen ? 'status-seen' : 'status-pending'}">${isSeen ? 'Seen / Submitted' : 'Pending'}</span></div>`;
+                }).join('') + `</div>`;
+        };
+
+        window.submitMark = async (subId) => {
+            const mark = document.getElementById(`input-${subId}`).value;
+            if(!mark) return alert("Enter mark!");
+            const subRef = doc(db, "submitted_assignments", subId);
+            const snap = await getDoc(subRef);
+            if (snap.exists()) {
+                await addDoc(collection(db, "marked_history"), { ...snap.data(), mark: mark, markedAt: Date.now() });
+                await deleteDoc(subRef);
+                alert("Marked!"); window.closeModals(); loadMarkedHistory();
+            }
+        };
+
+        document.getElementById('postBtn').onclick = async function() {
+            const title = document.getElementById('taskTitle').value;
+            const inst = document.getElementById('taskInstructions').value;
+            const file = document.getElementById('teacherMaterial').files[0];
+            const grades = Array.from(document.querySelectorAll('.g-check:checked')).map(c => c.value);
+            
+            const tName = document.getElementById('teacherNameInput').value;
+            const tId = document.getElementById('teacherIdInput').value;
+
+            if(!title || grades.length === 0 || !tId) return alert("Teacher ID missing or fields empty!");
+
+            this.disabled = true;
+            this.innerText = "Posting...";
+
+            let teacherImageUrl = "";
+            if(file) {
+                const formData = new FormData();
+                formData.append("image", file);
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+                const json = await res.json();
+                teacherImageUrl = json.data.url;
+            }
+
+            await addDoc(collection(db, "school_assignments"), {
+                title, instruction: inst, materialUrl: teacherImageUrl, 
+                targetGrades: grades, timestamp: Date.now(),
+                teacherName: tName, teacherId: tId // Saved with identity
+            });
+
+            alert("Assignment Posted!");
+            location.reload();
+        };
+
+        window.openSubmissions = async(id) => {
+            const modal = document.getElementById('sendedModal');
+            const content = document.getElementById('submissionsContent');
+            content.innerHTML = "Loading..."; modal.style.display = 'flex';
+            const q = query(collection(db, "submitted_assignments"), where("assignmentId", "==", id));
+            const snaps = await getDocs(q);
+            if(snaps.empty) { content.innerHTML = "No answers."; return; }
+            content.innerHTML = `<h4>Answers</h4>` + snaps.docs.map(s => `
+                <div class="answer-card">
+                    <strong>${s.data().studentName}</strong>
+                    <img src="${s.data().imgUrl}" class="answer-img" onclick="window.viewFullImg('${s.data().imgUrl}')">
+                    <div id="markArea-${s.id}"><button class="action-btn btn-send" onclick="window.showMarkInput('${s.id}')">Mark</button></div>
+                </div>`).join('');
+        };
+        window.showMarkInput = (id) => { document.getElementById(`markArea-${id}`).innerHTML = `<input type="number" id="input-${id}" placeholder="Mark"><button class="action-btn btn-send" onclick="window.submitMark('${id}')">Send</button>`; };
+        window.viewFullImg = (url) => { document.getElementById('fullImg').src = url; document.getElementById('imageModal').style.display = 'flex'; };
+        window.closeModals = () => { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); };
+        window.switchTab = (tab) => {
+            document.getElementById('uploadSection').style.display = tab === 'upload' ? 'block' : 'none';
+            document.getElementById('historySection').style.display = tab === 'history' ? 'block' : 'none';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab === 'upload' ? 'tabUpload' : 'tabHistory').classList.add('active');
+            if(tab === 'history') loadMarkedHistory();
+        };
+        async function loadMarkedHistory() {
+            const snaps = await getDocs(query(collection(db, "marked_history"), orderBy("markedAt", "desc")));
+            document.getElementById('markedList').innerHTML = snaps.docs.map(s => `<div class="student-row"><span>${s.data().studentName}</span><strong>${s.data().mark}%</strong></div>`).join('');
+        }
+
+        setTeacherIdentity(); loadGrades(); loadActiveAssignments();
+    </script>
+</body>
+</html>
