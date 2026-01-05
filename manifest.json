@@ -1,15 +1,17 @@
 {
-  "name": "ANV Digital For Teachers",
-  "short_name": "ANV",
-  "start_url": "/index.html",
+  "name": "ANV Digital Teachers",
+  "short_name": "ANV Digital",
+  "description": "The best platform for digital teachers.",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#2c3e50",
   "icons": [
     {
       "src": "logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
